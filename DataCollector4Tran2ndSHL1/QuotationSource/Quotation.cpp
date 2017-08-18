@@ -4,7 +4,7 @@
 #include "MVPlat.h"
 #include "Quotation.h"
 #include "../Infrastructure/IniFile.h"
-#include "../DataCollector4Tran2ndSZL1.h"
+#include "../DataCollector4Tran2ndSHL1.h"
 
 
 WorkStatus::WorkStatus()
@@ -113,7 +113,7 @@ int Quotation::Initialize()
 		QuoCollector::GetCollector()->OnLog( TLV_INFO, "Quotation::Initialize() : ............ Quotation Is Activating............" );
 
 		Release();
-		if( m_oSZL1Dll.Instance( "tran2ndsz.dll" ) < 0 )
+		if( m_oSHL1Dll.Instance( "tran2ndsh.dll" ) < 0 )
 		{
 			QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::Initialize() : failed 2 initialize tran2ndsz.dll" );
 			Release();
@@ -124,9 +124,9 @@ int Quotation::Initialize()
 		{
 			SimpleTask::Sleep(1000);
 
-			if( true == m_oSZL1Dll.IsWorking() )
+			if( true == m_oSHL1Dll.IsWorking() )
 			{
-				if( (nErrCode = m_oSZL1Dll.GetMarketInfo( &tagHead, tagDetail, sizeof tagDetail/sizeof tagDetail[0] )) < 0 )
+				if( (nErrCode = m_oSHL1Dll.GetMarketInfo( &tagHead, tagDetail, sizeof tagDetail/sizeof tagDetail[0] )) < 0 )
 				{
 					continue;
 				}
@@ -180,10 +180,10 @@ int Quotation::BuildImageData()
 	int								nErrCode = 0;
 	tagCcComm_MarketInfoHead		tagHead = { 0 };
 	tagCcComm_MarketInfoDetail		tagDetail[32] = { 0 };
-	tagSZL1MarketInfo_LF164			tagMkInfo = { 0 };
-	tagSZL1MarketStatus_HF166		tagMkStatus = { 0 };
+	tagSHL1MarketInfo_LF149			tagMkInfo = { 0 };
+	tagSHL1MarketStatus_HF151		tagMkStatus = { 0 };
 
-	if( (nErrCode = m_oSZL1Dll.GetMarketInfo( &tagHead, tagDetail, sizeof tagDetail/sizeof tagDetail[0] )) < 0 )
+	if( (nErrCode = m_oSHL1Dll.GetMarketInfo( &tagHead, tagDetail, sizeof tagDetail/sizeof tagDetail[0] )) < 0 )
 	{
 		QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::BuildImageData() : cannot fetch marketinfo, errorcode=%d", nErrCode );
 		return -1;
@@ -198,7 +198,7 @@ int Quotation::BuildImageData()
 	::strcpy( tagMkStatus.Key, "status" );
 	tagMkStatus.MarketStatus = tagHead.MarketStatus;
 	tagMkStatus.MarketTime = tagHead.Time;
-	QuoCollector::GetCollector()->OnImage( 166, (char*)&tagMkStatus, sizeof(tagSZL1MarketStatus_HF166), false );
+	QuoCollector::GetCollector()->OnImage( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), false );
 
 	::strcpy( tagMkInfo.Key, "mkinfo" );
 	tagMkInfo.KindCount = tagHead.KindCount;
@@ -207,12 +207,12 @@ int Quotation::BuildImageData()
 	::memcpy( &(tagMkInfo.MarketPeriods), &(tagHead.Periods), sizeof(tagHead.Periods) );
 	tagMkInfo.PeriodsCount = tagHead.PeriodsCount;
 	tagMkInfo.WareCount = tagHead.WareCount;
-	QuoCollector::GetCollector()->OnImage( 164, (char*)&tagMkInfo, sizeof(tagSZL1MarketInfo_LF164), false );
+	QuoCollector::GetCollector()->OnImage( 149, (char*)&tagMkInfo, sizeof(tagSHL1MarketInfo_LF149), false );
 
 	for( int i = 0 ; i < tagMkInfo.KindCount; i++ )
 	{
 		char						pszKey[12] = { 0 };
-		tagSZL1KindDetail_LF165		tagCategory = { 0 };
+		tagSHL1KindDetail_LF150		tagCategory = { 0 };
 
 		::sprintf( pszKey, "%d", i );
 		::strcpy( tagCategory.Key, pszKey );
@@ -221,11 +221,11 @@ int Quotation::BuildImageData()
 		tagCategory.PriceRate = tagDetail[i].PriceRate;
 		tagCategory.WareCount = tagDetail[i].WareCount;
 
-		QuoCollector::GetCollector()->OnImage( 164, (char*)&tagMkInfo, sizeof(tagSZL1MarketInfo_LF164), false );
+		QuoCollector::GetCollector()->OnImage( 150, (char*)&tagCategory, sizeof(tagSHL1KindDetail_LF150), false );
 	}
 
 	tagCcComm_ShNameTable*	pTable = (tagCcComm_ShNameTable*)m_pDataBuff;
-	if( (nErrCode = m_oSZL1Dll.GetNameTable( 0, pTable, tagHead.WareCount )) < 0 )
+	if( (nErrCode = m_oSHL1Dll.GetNameTable( 0, pTable, tagHead.WareCount )) < 0 )
 	{
 		QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::BuildImageData() : cannot fetch nametable from dll, errorcode = %d ", nErrCode );
 		return -3;
@@ -233,17 +233,17 @@ int Quotation::BuildImageData()
 
 	for( int i = 0; i < tagHead.WareCount; ++i )
 	{
-		tagSZL1ReferenceData_LF167	tagRef = { 0 };
+		tagSHL1ReferenceData_LF152	tagRef = { 0 };
 
 		strncpy( tagRef.Code, pTable[i].Code, sizeof(pTable[i].Code) );
 		tagRef.Kind = pTable[i].Type;
 		strncpy( tagRef.Name, pTable[i].Name, sizeof(pTable[i].Name) );
-		QuoCollector::GetCollector()->OnImage( 167, (char*)&tagRef, sizeof(tagSZL1ReferenceData_LF167), false );
+		QuoCollector::GetCollector()->OnImage( 152, (char*)&tagRef, sizeof(tagSHL1ReferenceData_LF152), false );
 	}
 
 	//3,获取扩展码表
 	tagCcComm_NameTableEx*	pNameEx = (tagCcComm_NameTableEx*)m_pDataBuff;
-	if( (nErrCode = m_oSZL1Dll.GetNameTableEx(0, pNameEx, tagHead.WareCount)) < 0 )
+	if( (nErrCode = m_oSHL1Dll.GetNameTableEx(0, pNameEx, tagHead.WareCount)) < 0 )
 	{
 		QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::BuildImageData() : cannot fetch nametableEx from dll, errorcode = %d ", nErrCode );
 		return -4;
@@ -251,7 +251,7 @@ int Quotation::BuildImageData()
 
 	for( int i = 0; i < tagHead.WareCount; i++ )
 	{
-		tagSZL1ReferenceExtension_LF168	tagExtension = { 0 };
+		tagSHL1ReferenceExtension_LF153	tagExtension = { 0 };
 
 		strncpy( tagExtension.Code, pNameEx[i].Code, sizeof(pNameEx[i].Code) );
 		tagExtension.ExTts = pNameEx[i].ExTts;
@@ -260,12 +260,12 @@ int Quotation::BuildImageData()
 		tagExtension.PLimit = pNameEx[i].PLimit;
 		tagExtension.StopFlag = pNameEx[i].SFlag;
 		tagExtension.Worth = pNameEx[i].Worth;
-		QuoCollector::GetCollector()->OnImage( 168, (char*)&tagExtension, sizeof(tagSZL1ReferenceExtension_LF168), false );
+		QuoCollector::GetCollector()->OnImage( 153, (char*)&tagExtension, sizeof(tagSHL1ReferenceExtension_LF153), false );
 	}
 
 	//4,获取指数快照
 	tagCcComm_IndexData*	pIndex = (tagCcComm_IndexData*)m_pDataBuff;
-	if( (nErrCode = m_oSZL1Dll.GetIndex( 0, pIndex, tagHead.WareCount )) < 0 )
+	if( (nErrCode = m_oSHL1Dll.GetIndex( 0, pIndex, tagHead.WareCount )) < 0 )
 	{
 		QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::BuildImageData() : cannot fetch indextable from dll, errorcode = %d ", nErrCode );
 		return -5;
@@ -273,8 +273,8 @@ int Quotation::BuildImageData()
 
 	for( int i = 0; i < nErrCode; ++i )
 	{
-		tagSZL1SnapData_LF169		tagIndexLF = { 0 };
-		tagSZL1SnapData_HF170		tagIndexHF = { 0 };
+		tagSHL1SnapData_LF154		tagIndexLF = { 0 };
+		tagSHL1SnapData_HF155		tagIndexHF = { 0 };
 
 		::strncpy( tagIndexLF.Code, pIndex[i].Code, sizeof(pIndex[i].Code) );
 		::strncpy( tagIndexHF.Code, pIndex[i].Code, sizeof(pIndex[i].Code) );
@@ -286,13 +286,13 @@ int Quotation::BuildImageData()
 		tagIndexHF.High = pIndex[i].High;
 		tagIndexHF.Low = pIndex[i].Low;
 
-		QuoCollector::GetCollector()->OnImage( 169, (char*)&tagIndexLF, sizeof(tagSZL1SnapData_LF169), false );
-		QuoCollector::GetCollector()->OnImage( 170, (char*)&tagIndexHF, sizeof(tagSZL1SnapData_HF170), false );
+		QuoCollector::GetCollector()->OnImage( 154, (char*)&tagIndexLF, sizeof(tagSHL1SnapData_LF154), false );
+		QuoCollector::GetCollector()->OnImage( 155, (char*)&tagIndexHF, sizeof(tagSHL1SnapData_HF155), false );
 	}
 
 	//5,获取个股快照
 	tagCcComm_StockData5*	pStock = (tagCcComm_StockData5*)m_pDataBuff;
-	if( (nErrCode = m_oSZL1Dll.GetStock(0, pStock, tagHead.WareCount)) < 0 )
+	if( (nErrCode = m_oSHL1Dll.GetStock(0, pStock, tagHead.WareCount)) < 0 )
 	{
 		QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::BuildImageData() : cannot fetch stocktable from dll, errorcode = %d ", nErrCode );
 		return -6;
@@ -300,9 +300,9 @@ int Quotation::BuildImageData()
 
 	for (int i = 0; i < nErrCode; ++i)
 	{
-		tagSZL1SnapData_LF169		tagStockLF = { 0 };
-		tagSZL1SnapData_HF170		tagStockHF = { 0 };
-		tagSZL1SnapBuySell_HF171	tagStockBS = { 0 };
+		tagSHL1SnapData_LF154		tagStockLF = { 0 };
+		tagSHL1SnapData_HF155		tagStockHF = { 0 };
+		tagSHL1SnapBuySell_HF156	tagStockBS = { 0 };
 
 		::strncpy( tagStockLF.Code, pStock[i].Code, sizeof(pStock[i].Code) );
 		::strncpy( tagStockHF.Code, pStock[i].Code, sizeof(pStock[i].Code) );
@@ -320,9 +320,9 @@ int Quotation::BuildImageData()
 		memcpy( tagStockBS.Buy, pStock[i].Buy, sizeof(tagStockBS.Buy) );
 		memcpy( tagStockBS.Sell, pStock[i].Sell, sizeof(tagStockBS.Sell) );
 
-		QuoCollector::GetCollector()->OnImage( 169, (char*)&tagStockLF, sizeof(tagSZL1SnapData_LF169), false );
-		QuoCollector::GetCollector()->OnImage( 170, (char*)&tagStockHF, sizeof(tagSZL1SnapData_HF170), false );
-		QuoCollector::GetCollector()->OnImage( 171, (char*)&tagStockBS, sizeof(tagSZL1SnapBuySell_HF171), true );
+		QuoCollector::GetCollector()->OnImage( 154, (char*)&tagStockLF, sizeof(tagSHL1SnapData_LF154), false );
+		QuoCollector::GetCollector()->OnImage( 155, (char*)&tagStockHF, sizeof(tagSHL1SnapData_HF155), false );
+		QuoCollector::GetCollector()->OnImage( 156, (char*)&tagStockBS, sizeof(tagSHL1SnapBuySell_HF156), true );
 	}
 
 	return 0;
@@ -379,13 +379,13 @@ void Quotation::OnPushPreName(const char *buf, size_t len) {
 
 void Quotation::OnPushMarketInfo(const char *buf, size_t len)
 {
-	tagSZL1MarketStatus_HF166		tagMkStatus = { 0 };
+	tagSHL1MarketStatus_HF151		tagMkStatus = { 0 };
 	tagCcComm_MarketStatusInfo*		marketinfo = (tagCcComm_MarketStatusInfo *)buf;
 
 	tagMkStatus.MarketStatus = 1;
 	::strcpy( tagMkStatus.Key, "status" );
 	tagMkStatus.MarketTime = marketinfo->MarketTime;
-	QuoCollector::GetCollector()->OnData( 166, (char*)&tagMkStatus, sizeof(tagSZL1MarketStatus_HF166), true );
+	QuoCollector::GetCollector()->OnData( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), true );
 }
 
 void Quotation::OnPushOrderQueue(const char *buf, size_t len) {
@@ -410,8 +410,8 @@ void Quotation::OnPushOrderQueue(const char *buf, size_t len) {
 
 void Quotation::OnPushIndex(const char * buf, size_t len)
 {
-	tagSZL1SnapData_LF169		tagIndexLF = { 0 };
-	tagSZL1SnapData_HF170		tagIndexHF = { 0 };
+	tagSHL1SnapData_LF154		tagIndexLF = { 0 };
+	tagSHL1SnapData_HF155		tagIndexHF = { 0 };
 	tagCcComm_IndexData*		index = (tagCcComm_IndexData *)buf;
 
 	::strncpy( tagIndexLF.Code, index->Code, sizeof(index->Code) );
@@ -424,15 +424,15 @@ void Quotation::OnPushIndex(const char * buf, size_t len)
 	tagIndexHF.High = index->High;
 	tagIndexHF.Low = index->Low;
 
-	QuoCollector::GetCollector()->OnData( 169, (char*)&tagIndexLF, sizeof(tagSZL1SnapData_LF169), true );
-	QuoCollector::GetCollector()->OnData( 170, (char*)&tagIndexHF, sizeof(tagSZL1SnapData_HF170), true );
+	QuoCollector::GetCollector()->OnData( 154, (char*)&tagIndexLF, sizeof(tagSHL1SnapData_LF154), true );
+	QuoCollector::GetCollector()->OnData( 155, (char*)&tagIndexHF, sizeof(tagSHL1SnapData_HF155), true );
 }
 
 void Quotation::OnPushStock(const char * buf, size_t InSize)
 {
-	tagSZL1SnapData_LF169		tagStockLF = { 0 };
-	tagSZL1SnapData_HF170		tagStockHF = { 0 };
-	tagSZL1SnapBuySell_HF171	tagStockBS = { 0 };
+	tagSHL1SnapData_LF154		tagStockLF = { 0 };
+	tagSHL1SnapData_HF155		tagStockHF = { 0 };
+	tagSHL1SnapBuySell_HF156	tagStockBS = { 0 };
 	tagCcComm_StockData5*		stock = (tagCcComm_StockData5 *)buf;
 
 	::strncpy( tagStockLF.Code, stock->Code, sizeof(stock->Code) );
@@ -451,15 +451,15 @@ void Quotation::OnPushStock(const char * buf, size_t InSize)
 	memcpy( tagStockBS.Buy, stock->Buy, sizeof(tagStockBS.Buy) );
 	memcpy( tagStockBS.Sell, stock->Sell, sizeof(tagStockBS.Sell) );
 
-	QuoCollector::GetCollector()->OnData( 169, (char*)&tagStockLF, sizeof(tagSZL1SnapData_LF169), true );
-	QuoCollector::GetCollector()->OnData( 170, (char*)&tagStockHF, sizeof(tagSZL1SnapData_HF170), true );
-	QuoCollector::GetCollector()->OnData( 171, (char*)&tagStockBS, sizeof(tagSZL1SnapBuySell_HF171), true );
+	QuoCollector::GetCollector()->OnData( 154, (char*)&tagStockLF, sizeof(tagSHL1SnapData_LF154), true );
+	QuoCollector::GetCollector()->OnData( 155, (char*)&tagStockHF, sizeof(tagSHL1SnapData_HF155), true );
+	QuoCollector::GetCollector()->OnData( 156, (char*)&tagStockBS, sizeof(tagSHL1SnapBuySell_HF156), true );
 }
 
 void Quotation::OnInnerPush( unsigned char MainType, unsigned char ChildType, const char * InBuf, unsigned short InSize, unsigned char marketid )
 {
 	int								nErrCode = 0;
-	tagSZL1MarketStatus_HF166		tagMkStatus = { 0 };
+	tagSHL1MarketStatus_HF151		tagMkStatus = { 0 };
 	int								offset = sizeof(tagCcComm_TimeInfo);
 	tagCcComm_TimeInfo*				updataTime = (tagCcComm_TimeInfo*)InBuf;
 
@@ -479,18 +479,18 @@ void Quotation::OnInnerPush( unsigned char MainType, unsigned char ChildType, co
 			{
             case 0:
 				{
-					tagSZL1ReferenceExtension_LF168		tagExtension = { 0 };
+					tagSHL1ReferenceExtension_LF153		tagExtension = { 0 };
 					::memcpy( tagExtension.Code, InBuf + offset, 6 );
 					offset += 6;
 
-					if( (nErrCode=QuoCollector::GetCollector()->OnQuery( 168, (char*)&tagExtension, sizeof(tagSZL1ReferenceExtension_LF168) )) <= 0 )
+					if( (nErrCode=QuoCollector::GetCollector()->OnQuery( 153, (char*)&tagExtension, sizeof(tagSHL1ReferenceExtension_LF153) )) <= 0 )
 					{
 						QuoCollector::GetCollector()->OnLog( TLV_WARN, "Quotation::OnInnerPush() : code[%s] is not existed in table, errorcode = %d ", tagExtension.Code, nErrCode );
 					}
 					else
 					{
 						tagExtension.StopFlag = *(InBuf + 6);
-						QuoCollector::GetCollector()->OnImage( 168, (char*)&tagExtension, sizeof(tagSZL1ReferenceExtension_LF168), true );
+						QuoCollector::GetCollector()->OnImage( 153, (char*)&tagExtension, sizeof(tagSHL1ReferenceExtension_LF153), true );
 					}
 
 					offset++;
@@ -513,7 +513,7 @@ void Quotation::OnInnerPush( unsigned char MainType, unsigned char ChildType, co
             }
         }	
     }
-	else if( ChildType == 59 )
+	else if( ChildType == 50 )
 	{
         while( offset < InSize )
         {
@@ -523,7 +523,7 @@ void Quotation::OnInnerPush( unsigned char MainType, unsigned char ChildType, co
 			tagMkStatus.MarketStatus = 1;
 			::strcpy( tagMkStatus.Key, "status" );
 			tagMkStatus.MarketTime = updataTime->CurTime;
-			QuoCollector::GetCollector()->OnData( 166, (char*)&tagMkStatus, sizeof(tagSZL1MarketStatus_HF166), true );
+			QuoCollector::GetCollector()->OnData( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), true );
 
             switch( type )
             {

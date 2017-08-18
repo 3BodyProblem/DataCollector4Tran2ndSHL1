@@ -12,7 +12,7 @@
 #include "../Infrastructure/Lock.h"
 #include "../Infrastructure/Thread.h"
 #include "../Infrastructure/DateTime.h"
-#include "../Tran2nd_SZL1_QuoProtocal.h"
+#include "../Tran2nd_SHL1_QuoProtocal.h"
 
 
 typedef struct
@@ -123,7 +123,7 @@ public:///< 公共方法函数
 private:
 	CriticalObject		m_oLock;				///< 临界区对象
 	WorkStatus			m_oWorkStatus;			///< 工作状态
-	L2Dll				m_oSZL1Dll;				///< 深圳传输模块管理对象
+	L2Dll				m_oSHL1Dll;				///< 深圳传输模块管理对象
 	char*				m_pDataBuff;			///< 数据临时缓存
 };
 

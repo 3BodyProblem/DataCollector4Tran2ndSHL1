@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "Configuration.h"
 #include "Infrastructure/IniFile.h"
-#include "DataCollector4Tran2ndSZL1.h"
+#include "DataCollector4Tran2ndSHL1.h"
 
 
 HMODULE						g_oModule;
@@ -91,7 +91,7 @@ int Configuration::Initialize()
 	int					nErrCode = 0;
     char				pszTmp[1024] = { 0 };
 
-	m_nMarketID = 3;
+	m_nMarketID = 1;
     ::GetModuleFileName( g_oModule, pszTmp, sizeof(pszTmp) );
     sPath = pszTmp;
     sPath = sPath.substr( 0, sPath.find(".dll") ) + ".ini";
@@ -115,24 +115,9 @@ unsigned int Configuration::GetMarketID() const
 	return m_nMarketID;
 }
 
-const std::string& Configuration::GetExchangeID() const
-{
-	return m_sExchangeID;
-}
-
 const std::string& Configuration::GetDumpFolder() const
 {
 	return m_sDumpFileFolder;
-}
-
-const std::string& Configuration::GetMktdt03FilePath() const
-{
-	return m_sMktdt03FilePath;
-}
-
-const std::string& Configuration::GetReffFilePath() const
-{
-	return m_sReffFilePath;
 }
 
 

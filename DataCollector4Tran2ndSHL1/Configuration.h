@@ -59,31 +59,13 @@ public:
 	const std::string&			GetDumpFolder() const;
 
 	/**
-	 * @brief					获取交易所编号
-	 */
-	const std::string&			GetExchangeID() const;
-
-	/**
 	 * @brief					获取市场编号
 	 */
 	unsigned int				GetMarketID() const;
 
-	/**
-	 * @brief					获取行情文件路径
-	 */
-	const std::string&			GetMktdt03FilePath() const;
-
-	/**
-	 * @brief					获取非交易文件路径
-	 */
-	const std::string&			GetReffFilePath() const;
-
 private:
 	unsigned int				m_nMarketID;			///< 市场编号
-	std::string					m_sExchangeID;			///< 交易所编号
 	std::string					m_sDumpFileFolder;		///< 快照落盘路径(需要有文件名)
-	std::string					m_sMktdt03FilePath;		///< 行情文件路径
-	std::string					m_sReffFilePath;			///< 非交易文件配置路径(不包含文件中的日期部分)
 };
 
 

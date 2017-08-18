@@ -1,7 +1,7 @@
 #include "L2Dll.h"
 #include "MVPlat.h"
 #include "Quotation.h"
-#include "../DataCollector4Tran2ndSZL1.h"
+#include "../DataCollector4Tran2ndSHL1.h"
 
 
 L2Dll::L2Dll()
