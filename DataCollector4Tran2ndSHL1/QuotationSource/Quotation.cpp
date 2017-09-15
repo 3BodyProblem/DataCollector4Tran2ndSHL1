@@ -201,12 +201,10 @@ int Quotation::BuildImageData()
 
 	m_mapRate.clear();
 	m_mapKind.clear();
-	::strcpy( tagMkStatus.Key, "mkstatus" );
 	tagMkStatus.MarketStatus = tagHead.MarketStatus;
 	tagMkStatus.MarketTime = tagHead.Time;
 	QuoCollector::GetCollector()->OnImage( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), false );
 
-	::strcpy( tagMkInfo.Key, "mkinfo" );
 	tagMkInfo.KindCount = tagHead.KindCount;
 	tagMkInfo.MarketDate = tagHead.Date;
 	tagMkInfo.MarketID = Configuration::GetConfig().GetMarketID();
@@ -388,7 +386,6 @@ void Quotation::OnPushMarketInfo(const char *buf, size_t len)
 	tagCcComm_MarketStatusInfo*		marketinfo = (tagCcComm_MarketStatusInfo *)buf;
 
 	tagMkStatus.MarketStatus = 1;
-	::strcpy( tagMkStatus.Key, "mkstatus" );
 	tagMkStatus.MarketTime = marketinfo->MarketTime;
 	QuoCollector::GetCollector()->OnData( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), true );
 }
@@ -526,7 +523,6 @@ void Quotation::OnInnerPush( unsigned char MainType, unsigned char ChildType, co
             offset += 1;
 
 			tagMkStatus.MarketStatus = 1;
-			::strcpy( tagMkStatus.Key, "mkstatus" );
 			tagMkStatus.MarketTime = updataTime->CurTime;
 			QuoCollector::GetCollector()->OnData( 151, (char*)&tagMkStatus, sizeof(tagSHL1MarketStatus_HF151), true );
 
